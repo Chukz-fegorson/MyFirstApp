@@ -15,7 +15,8 @@ public class CourseController {
     public List<Courses> retrieveAllCourses() {
         return Arrays.asList(
                 new Courses(1, "Learn AWS", "Chuks Fegorson"),
-                new Courses(2, "Learn Python", "Chuks Fegorson")
+                new Courses(2, "Learn Python", "Chuks Fegorson"),
+                new Courses(3, "Learn Azure", "Chuks Fegorson")
         );
     }
     //@GetMapping
