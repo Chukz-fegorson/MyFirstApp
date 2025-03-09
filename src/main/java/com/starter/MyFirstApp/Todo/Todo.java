@@ -1,19 +1,23 @@
 package com.starter.MyFirstApp.Todo;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
-
-//Database (Postgres)
-//Create a Static List of todos => Database(H2,Postgres)
+import java.time.format.DateTimeFormatter;
 
 public class Todo {
     private int id;
     private String username;
     private String description;
-    private LocalDate dueDate; //used to store a date
+
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    private LocalDate dueDate;
+
     private boolean done;
 
+    // Constructors
+    public Todo() {}
+
     public Todo(int id, String username, String description, LocalDate dueDate, boolean done) {
-        super();
         this.id = id;
         this.username = username;
         this.description = description;
@@ -21,17 +25,7 @@ public class Todo {
         this.done = done;
     }
 
-    @Override
-    public String toString() {
-        return "Todo{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", description='" + description + '\'' +
-                ", dueDate=" + dueDate +
-                ", done=" + done +
-                '}';
-    }
-
+    // Getters and setters
     public int getId() {
         return id;
     }
@@ -60,6 +54,10 @@ public class Todo {
         return dueDate;
     }
 
+    public String getFormattedDueDate() {
+        return dueDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
+
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
     }
@@ -72,5 +70,3 @@ public class Todo {
         this.done = done;
     }
 }
-
-

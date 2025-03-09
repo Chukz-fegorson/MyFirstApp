@@ -1,8 +1,11 @@
 package com.starter.MyFirstApp.Todo;
 
+import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -12,39 +15,67 @@ import java.util.List;
 @SessionAttributes("name")
 public class TodoController {
 
+    private final TodoService todoService;
+
     public TodoController(TodoService todoService) {
-        this.todoService = todoService;}
-    private TodoService todoService;
+        this.todoService = todoService;
+    }
 
-    @RequestMapping("list-todos") //Url
-    public String listAllTodos(Model model) {
-        List<Todo> todos = todoService.findByUsername("Chuks");
-        model.addAttribute("name", "Chuks");
+    @GetMapping("list-todos")
+    public String listAllTodos(ModelMap model) {
+        String username = getLoggedInUsername();
+        List<Todo> todos = todoService.findByUsername(username);
+        model.addAttribute("name", username);
         model.addAttribute("todos", todos);
-        return "listTodos"; // Ensure this matches your JSP filename
+        return "listTodos";
     }
 
-    @RequestMapping(value = "add-todo", method = RequestMethod.GET) //Url and request type
-    public String shownewTodoPage(ModelMap model){
-        Todo todo = new Todo(0, "Chuks","", LocalDate.now().plusYears(1),false);
+    @GetMapping("add-todo")
+    public String showNewTodoPage(ModelMap model) {
+        String username = getLoggedInUsername();
+        Todo todo = new Todo(0, username, "", LocalDate.now().plusYears(1), false);
         model.put("todo", todo);
-        return "todo"; //this should match the jsp view file
+        return "todo";
     }
 
-    @RequestMapping(value = "add-todo", method = RequestMethod.POST) //Url and request type
-    //public String addNewTodo(@RequestParam String description, ModelMap model)
-    public String addNewTodo(@ModelAttribute("todo") Todo todo, ModelMap model) {
-        //todoService.addTodo((String) model.get("name"), description, LocalDate.now().plusYears(1), false);
-        String username= (String)model.get("name");
-        todoService.addTodo(username, todo.getDescription(),LocalDate.now().plusYears(1), false);
-        //redirecting back to the updated list
+    @PostMapping("add-todo")
+    public String addNewTodo(@Valid @ModelAttribute("todo") Todo todo,
+                             BindingResult result,
+                             ModelMap model) {
+        if (result.hasErrors()) {
+            return "todo";
+        }
+        String username = getLoggedInUsername();
+        todoService.addTodo(username, todo.getDescription(), LocalDate.now().plusYears(1), false);
         return "redirect:list-todos";
     }
-    @RequestMapping("delete-todo") //Url
+
+    @GetMapping("delete-todo")
     public String deleteTodo(@RequestParam int id) {
-        //Delete todo
         todoService.deleteById(id);
-        return "redirect:list-todos"; // Ensure this matches your JSP filename
+        return "redirect:list-todos";
     }
 
+    @GetMapping("update-todo")
+    public String showUpdateTodoPage(@RequestParam int id, ModelMap model) {
+        Todo todo = todoService.findById(id);
+        model.addAttribute("todo", todo);
+        return "todo";
+    }
+
+    @PostMapping("update-todo")
+    public String updateTodo(@Valid Todo todo, BindingResult result, ModelMap model) {
+        if (result.hasErrors()) {
+            return "todo";
+        }
+        String username = getLoggedInUsername();
+        todo.setUsername(username);
+        todoService.updateTodo(todo);
+        return "redirect:list-todos";
+    }
+
+    private String getLoggedInUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getName();
+    }
 }
